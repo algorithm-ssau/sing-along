@@ -16,6 +16,10 @@ dp = Dispatcher()
 async def cmd_start(message: types.Message):
     await message.answer("Hello, World!")
 
+@dp.message(Command("info"))
+async def cmd_info(message: types.Message, started_at: str):
+    await message.answer(f"Бот запущен {started_at}")
+
 async def main():
     await dp.start_polling(bot)
 
