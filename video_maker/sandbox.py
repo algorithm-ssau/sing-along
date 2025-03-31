@@ -1,3 +1,4 @@
+import numpy as np
 from moviepy import (
     TextClip,
     CompositeVideoClip,
@@ -138,29 +139,44 @@ def create_static_phrase_clip(phrase, config, duration):
     ).with_duration(duration)
 
 
+def create_background_with_image(image_path, size):
+    w, h = size
+
+    # Загружаем изображение
+    image = ImageClip(image_path)
+
+    # Масштабируем изображение, сохраняя пропорции
+    if image.w / image.h > w / h:  # Если изображение шире пропорционально
+        image = image.resized(width=w)
+    else:  # Если изображение выше пропорционально
+        image = image.resized(height=h)
+
+    # Получаем массив фона (черный фон)
+    bg_array = np.zeros((h, w, 3), dtype=np.uint8)
+
+    # Вычисляем позицию для центрирования
+    x_pos = (w - image.w) // 2
+    y_pos = (h - image.h) // 2
+
+    # Получаем массив изображения
+    img_array = image.get_frame(0)
+
+    # Вставляем изображение в фон
+    bg_array[y_pos:y_pos + image.h, x_pos:x_pos + image.w] = img_array
+
+    # Создаем финальный клип из массива
+    final_clip = ImageClip(bg_array)
+
+    return final_clip
+
+
 def create_multi_phrase_video(phrases_list, config):
     total_duration = max(phrase.end for phrase in phrases_list)
 
     cover_image = "media/muziki_cover.jpg"
 
     # Загружаем фоновое изображение
-    background = ImageClip(cover_image).resized((1920, 1080)).with_duration(total_duration)
-
-    # bg_image = ImageClip(cover_image).with_duration(total_duration)
-    # target_size = (1920, 1080)
-    #
-    # # Рассчет размеров с сохранением пропорций
-    # bg_w, bg_h = bg_image.size
-    # ratio = min(target_size[0] / bg_w, target_size[1] / bg_h)
-    # new_size = (int(bg_w * ratio), int(bg_h * ratio))
-    #
-    # # Создание фонового слоя
-    # resized_bg = bg_image.resized(new_size)
-    # bg = ColorClip(target_size, color=(0, 0, 0), duration=total_duration)
-    # background = CompositeVideoClip([
-    #     bg,
-    #     resized_bg.with_position('center')
-    # ]).with_duration(total_duration)
+    background = create_background_with_image(cover_image, (1920, 1080)).with_duration(total_duration)
 
     clips = []
     # Вычисляем высоту строки с запасом
