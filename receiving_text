@@ -1,20 +1,30 @@
 import lyricsgenius
-import os
 
-# Укажи свой API-ключ от Genius
+# Твой API-ключ от Genius
 GENIUS_API_KEY = "your_genius_api_key"
 
 genius = lyricsgenius.Genius(GENIUS_API_KEY)
 
-def get_lyrics(song_title, artist_name):
-    try:
-        song = genius.search_song(song_title, artist_name)
-        return song.lyrics if song else "Текст не найден."
-    except Exception as e:
-        return f"Ошибка: {e}"
+def get_lyrics(song_title: str, artist_name: str) -> str:
+    """Получает текст песни по названию и исполнителю"""
+    song = genius.search_song(song_title, artist_name)
+    return song.lyrics if song else ""
 
-# Пример использования
-song_title = "Shape of You"
-artist_name = "Ed Sheeran"
-lyrics = get_lyrics(song_title, artist_name)
-print(lyrics)
+# Функция для Telegram-бота
+async def fetch_lyrics(update, context) -> None:
+    """Обрабатывает команду /lyrics и передает текст дальше"""
+    if len(context.args) < 2:
+        return  # Если пользователь ввел неправильный формат, ничего не делаем
+
+    query = " ".join(context.args)
+    if "-" not in query:
+        return  # Если не указан исполнитель, тоже ничего не делаем
+
+    song_title, artist_name = map(str.strip, query.split("-", 1))
+    lyrics = get_lyrics(song_title, artist_name)
+
+    # Здесь можно передавать lyrics дальше в модуль синхронизации
+    if lyrics:
+        print(f"Текст песни {song_title} получен.")  # В будущем можно заменить на вызов другой функции
+    else:
+        print(f"Не удалось найти текст для {song_title}.")
