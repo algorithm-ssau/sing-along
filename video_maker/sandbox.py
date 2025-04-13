@@ -170,7 +170,7 @@ def create_background_with_image(image_path, size):
     return final_clip
 
 
-def create_multi_phrase_video(phrases_list, config):
+def create_multi_phrase_video(phrases_list: list[Phrase], config):
     total_duration = max(phrase.end for phrase in phrases_list)
 
     cover_image = "media/muziki_cover.jpg"
@@ -183,12 +183,7 @@ def create_multi_phrase_video(phrases_list, config):
     line_height = get_text_dimensions(phrases_list[0].text, config["fontsize"], config["font"])[1] + int(
         config["fontsize"] * 0.5) + 10
 
-    # Верхняя линия: статический клип для первой фразы с 0 до её start
-    if phrases_list[0].start > 0:
-        static_top = create_static_phrase_clip(phrases_list[0], config, phrases_list[0].start).with_position(
-            ('center', 0))
-        clips.append(static_top)
-
+    phrases_list[0].start = 0.0
     # Верхняя линия: анимированные клипы для каждой фразы
     for phrase in phrases_list:
         animated_clip = create_phrase_animation(phrase, config).with_position(('center', 0))
