@@ -6,7 +6,7 @@ import glob
 def separate_audio_batch(input_folder: str, output_folder: str):
     """
     Разделяет аудиофайл на вокал и инструменталс с созданием выходной папки при необходимости.
-
+    И пропускает файлы, которые уже были обработаны.
 
     :param input_file: Путь к входному аудиофайлу.
     :param output_path: Директория для сохранения результатов.
@@ -18,7 +18,7 @@ def separate_audio_batch(input_folder: str, output_folder: str):
         audio_files.extend(glob.glob(os.path.join(input_folder, file_format)))
 
     if not audio_files:
-        print(f"Ошибка: В папке '{input_folder}' нет аудиофайлов.")
+        print(f"Ошибка: В папке '{input_folder}' нет поддерживаемых аудиофайлов.")
         return
 
     os.makedirs(output_folder, exist_ok=True)
@@ -26,6 +26,16 @@ def separate_audio_batch(input_folder: str, output_folder: str):
     separator = Separator('spleeter:2stems')
 
     for file in audio_files:
+
+        file_name = os.path.splitext(os.path.basename(file))[0]
+        output_song_folder = os.path.join(output_folder, file_name)
+
+        # Проверка: если результат уже существует, пропустить файл
+        if os.path.exists(os.path.join(output_song_folder, 'vocals.wav')) and \
+                os.path.exists(os.path.join(output_song_folder, 'accompaniment.wav')):
+            print(f"Пропущено (уже обработано): {file}")
+            continue
+
         try:
             print(f"Обрабатывается: {file}")
             separator.separate_to_file(file, output_folder)
