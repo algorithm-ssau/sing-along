@@ -1,4 +1,9 @@
-from spleeter.separator import Separator
+try:
+    from spleeter.separator import Separator
+except ImportError:
+    print("Ошибка: библиотека 'spleeter' не установлена.\nУстановите её с помощью команды:\n\npip install spleeter\n")
+    exit(1)
+
 import os
 import glob
 import datetime
