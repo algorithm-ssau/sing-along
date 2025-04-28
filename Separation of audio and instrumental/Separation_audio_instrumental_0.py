@@ -1,12 +1,22 @@
 from spleeter.separator import Separator
 import os
 import glob
+import datetime
+import wave
 
+
+def is_valid_audio(file_path: str) -> bool:
+    """Проверяет, можно ли открыть аудиофайл без ошибок (работает для WAV и похожих форматов)."""
+    try:
+        with wave.open(file_path, 'rb') as audio:
+            return True
+    except Exception:
+        return False
 
 def separate_audio_batch(input_folder: str, output_folder: str):
     """
     Разделяет аудиофайл на вокал и инструменталс с созданием выходной папки при необходимости.
-    И пропускает файлы, которые уже были обработаны. Обрабатывает ошибку загрузки модели.
+    И пропускает файлы, которые уже были обработаны и повреждённые файлы. Обрабатывает ошибку загрузки модели.
 
     :param input_file: Путь к входному аудиофайлу.
     :param output_path: Директория для сохранения результатов.
@@ -38,6 +48,10 @@ def separate_audio_batch(input_folder: str, output_folder: str):
         if os.path.exists(os.path.join(output_song_folder, 'vocals.wav')) and \
                 os.path.exists(os.path.join(output_song_folder, 'accompaniment.wav')):
             print(f"Пропущено (уже обработано): {file}")
+            continue
+
+        if not is_valid_audio(file):
+            print(f"Пропущено (повреждённый файл): {file}")
             continue
 
         try:
