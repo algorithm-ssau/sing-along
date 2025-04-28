@@ -6,7 +6,7 @@ import glob
 def separate_audio_batch(input_folder: str, output_folder: str):
     """
     Разделяет аудиофайл на вокал и инструменталс с созданием выходной папки при необходимости.
-    И пропускает файлы, которые уже были обработаны.
+    И пропускает файлы, которые уже были обработаны. Обрабатывает ошибку загрузки модели.
 
     :param input_file: Путь к входному аудиофайлу.
     :param output_path: Директория для сохранения результатов.
@@ -23,7 +23,11 @@ def separate_audio_batch(input_folder: str, output_folder: str):
 
     os.makedirs(output_folder, exist_ok=True)
 
-    separator = Separator('spleeter:2stems')
+    try:
+        separator = Separator('spleeter:2stems')
+    except Exception as e:
+        print(f"Ошибка при инициализации модели Spleeter: {e}")
+        return
 
     for file in audio_files:
 
