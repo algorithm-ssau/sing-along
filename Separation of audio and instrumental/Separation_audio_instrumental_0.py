@@ -6,6 +6,7 @@ except ImportError:
 
 import os
 import glob
+import time
 import datetime
 import wave
 
@@ -22,6 +23,7 @@ def separate_audio_batch(input_folder: str, output_folder: str):
     """
     Разделяет аудиофайл на вокал и инструменталс с созданием выходной папки при необходимости.
     И пропускает файлы, которые уже были обработаны и повреждённые файлы. Обрабатывает ошибку загрузки модели.
+    Выводит общее время работы по завершении.
 
     :param input_file: Путь к входному аудиофайлу.
     :param output_path: Директория для сохранения результатов.
@@ -43,6 +45,8 @@ def separate_audio_batch(input_folder: str, output_folder: str):
     except Exception as e:
         print(f"Ошибка при инициализации модели Spleeter: {e}")
         return
+
+    start_time = time.time()  # <<< начинаем замер времени
 
     for file in audio_files:
 
@@ -66,6 +70,8 @@ def separate_audio_batch(input_folder: str, output_folder: str):
         except Exception as e:
             print(f"Ошибка при обработке '{file}': {e}")
 
+    end_time = time.time()
+    total_time = end_time - start_time
 
 # Пример использования
 separate_audio_batch('input_songs', 'output')
