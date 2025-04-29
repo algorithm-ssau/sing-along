@@ -25,7 +25,7 @@ class GeniusTextScrapper(TextGenerator):
         page_response = requests.get(f"{first_matched_song['result']['url']}", headers=auth_header)
         html = BeautifulSoup(page_response.text.replace('<br/>', '\n'), "html.parser")
         # Determine the class of the div
-        divs = html.find_all("div", class_=re.compile(r"^Lyrics-\w{2}.\w+.[1]|Lyrics__Container"))
+        divs = html.find_all("div", attrs={'data-lyrics-container' : True})
         if divs is None or len(divs) <= 0:
             raise Exception("Couldn't find the lyrics section")
 
