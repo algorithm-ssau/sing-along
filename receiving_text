@@ -37,4 +37,8 @@ class GeniusTextScrapper(TextGenerator):
         lyrics = re.sub('\n{2}', '\n', lyrics)  # Gaps between verses
         lyrics = re.sub('\d+ Contributors', '', lyrics)
         lyrics = re.sub('.+ Lyrics', '', lyrics)
+
+        while '\n\n' in lyrics:
+            lyrics = lyrics.replace('\n\n', '\n')
+
         return lyrics.strip("\n")
