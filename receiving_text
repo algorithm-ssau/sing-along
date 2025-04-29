@@ -1,3 +1,4 @@
+import os
 import re
 
 import requests
@@ -9,11 +10,11 @@ from core.application.text_generation import TextGenerator
 class GeniusTextScrapper(TextGenerator):
     def get_text_for_a_song(self, song_title: str) -> str:
         base_url = "https://api.genius.com"
-        token = "your_genius_api_key"
+        token = os.getenv("GENIUS_TOKEN")
         auth_header = {"Authorization": f"Bearer {token}"}
         response = requests.get(f"{base_url}/search?q={song_title}", headers=auth_header)
         result = response.json()
-        assert result["meta"]["status"] == 200
+        assert result["meta"]["status"] == 200, result
         hits = result["response"]["hits"]
         songs = [
             api_object
