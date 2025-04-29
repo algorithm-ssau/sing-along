@@ -1,30 +1,39 @@
-import lyricsgenius
+import re
 
-# Твой API-ключ от Genius
-GENIUS_API_KEY = "your_genius_api_key"
+import requests
+from bs4 import BeautifulSoup
 
-genius = lyricsgenius.Genius(GENIUS_API_KEY)
+from core.application.text_generation import TextGenerator
 
-def get_lyrics(song_title: str, artist_name: str) -> str:
-    """Получает текст песни по названию и исполнителю"""
-    song = genius.search_song(song_title, artist_name)
-    return song.lyrics if song else ""
 
-# Функция для Telegram-бота
-async def fetch_lyrics(update, context) -> None:
-    """Обрабатывает команду /lyrics и передает текст дальше"""
-    if len(context.args) < 2:
-        return  # Если пользователь ввел неправильный формат, ничего не делаем
+class GeniusTextScrapper(TextGenerator):
+    def get_text_for_a_song(self, song_title: str) -> str:
+        base_url = "https://api.genius.com"
+        token = "your_genius_api_key"
+        auth_header = {"Authorization": f"Bearer {token}"}
+        response = requests.get(f"{base_url}/search?q={song_title}", headers=auth_header)
+        result = response.json()
+        assert result["meta"]["status"] == 200
+        hits = result["response"]["hits"]
+        songs = [
+            api_object
+            for api_object in hits
+            if api_object["type"] == "song"
+        ]
+        first_matched_song = songs[0]
+        page_response = requests.get(f"{first_matched_song['result']['url']}", headers=auth_header)
+        html = BeautifulSoup(page_response.text.replace('<br/>', '\n'), "html.parser")
+        # Determine the class of the div
+        divs = html.find_all("div", class_=re.compile(r"^Lyrics-\w{2}.\w+.[1]|Lyrics__Container"))
+        if divs is None or len(divs) <= 0:
+            raise Exception("Couldn't find the lyrics section")
 
-    query = " ".join(context.args)
-    if "-" not in query:
-        return  # Если не указан исполнитель, тоже ничего не делаем
+        lyrics = "\n".join([div.get_text() for div in divs])
 
-    song_title, artist_name = map(str.strip, query.split("-", 1))
-    lyrics = get_lyrics(song_title, artist_name)
-
-    # Здесь можно передавать lyrics дальше в модуль синхронизации
-    if lyrics:
-        print(f"Текст песни {song_title} получен.")  # В будущем можно заменить на вызов другой функции
-    else:
-        print(f"Не удалось найти текст для {song_title}.")
+        # Remove [Verse], [Bridge], etc.
+        # if self.remove_section_headers or remove_section_headers:
+        lyrics = re.sub(r'(\[.*?\])*', '', lyrics)
+        lyrics = re.sub('\n{2}', '\n', lyrics)  # Gaps between verses
+        lyrics = re.sub('\d+ Contributors', '', lyrics)
+        lyrics = re.sub('.+ Lyrics', '', lyrics)
+        return lyrics.strip("\n")
