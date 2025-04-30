@@ -20,6 +20,7 @@ data = {"song_name": ""}
 class SongStates(StatesGroup):
     default = State()
     name = State()
+    audio = State()
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
@@ -55,6 +56,13 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 async def enter_song_name(message: types.Message, state: FSMContext):
     data["song_name"] = message.text
     logging.info("Название песние %r", data["song_name"])
+    await state.set_state(SongStates.audio)
+    await message.answer(f"Прикрепите аудио файл")
+
+@dp.message(StateFilter(SongStates.audio))
+async def attach_audio(message: types.Message, state: FSMContext):
+    audio_file_id = message.audio.file_id
+    await bot.send_audio(chat_id=message.from_user.id, audio=audio_file_id)
     await state.clear()
 
 async def main():
