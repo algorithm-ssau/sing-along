@@ -32,10 +32,24 @@ async def cmd_info(message: types.Message, started_at: str):
         return
     await message.answer(f"Бот запущен {started_at}\nТекущая песня: {data['song_name']}")
 
+@dp.message(Command("video"))
+async def cmd_video(message: types.Message):
+    await bot.send_video(chat_id=message.from_user.id, video="https://avtshare01.rz.tu-ilmenau.de/avt-vqdb-uhd-1/test_1/segments/bigbuck_bunny_8bit_15000kbps_1080p_60.0fps_h264.mp4")
+
 @dp.message(Command("song"))
 async def cmd_song(message: types.Message, state: FSMContext):
     await state.set_state(SongStates.name)
     await message.answer(f"Введите название песни:")
+
+@dp.message(StateFilter(None), Command("cancel"))
+async def cancel_handler(message: types.Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state is None:
+        return
+
+    logging.info("Отмeнено состояние %r", current_state)
+    await state.clear()
+    await message.reply("Отмена.", reply_markup=types.ReplyKeyboardRemove())
 
 @dp.message(StateFilter(SongStates.name))
 async def enter_song_name(message: types.Message, state: FSMContext):
