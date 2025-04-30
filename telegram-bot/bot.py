@@ -4,8 +4,9 @@ import os
 from datetime import datetime
 
 from aiogram.fsm.context import FSMContext
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from dotenv import load_dotenv
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters.command import Command
 from aiogram.filters.state import State, StatesGroup, StateFilter
 
@@ -24,23 +25,30 @@ class SongStates(StatesGroup):
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
-    await message.answer("Hello, World!")
+    builder = InlineKeyboardBuilder()
+    builder.row(types.InlineKeyboardButton(text="Песня", callback_data="song"))
+    builder.row(types.InlineKeyboardButton(text="Информация", callback_data="info"))
+    builder.row(types.InlineKeyboardButton(text="Видео", callback_data="video"))
+    await message.answer("Hello, World!", reply_markup=builder.as_markup())
 
 @dp.message(Command("info"))
+@dp.callback_query(F.data == "info")
 async def cmd_info(message: types.Message, started_at: str):
     if not data["song_name"]:
-        await message.answer(f"Бот запущен {started_at}\nТекущей песни нет")
+        await bot.send_message(chat_id=message.from_user.id, text=f"Бот запущен {started_at}\nТекущей песни нет")
         return
-    await message.answer(f"Бот запущен {started_at}\nТекущая песня: {data['song_name']}")
+    await bot.send_message(chat_id=message.from_user.id, text=f"Бот запущен {started_at}\nТекущая песня: {data['song_name']}")
 
 @dp.message(Command("video"))
+@dp.callback_query(F.data == "video")
 async def cmd_video(message: types.Message):
     await bot.send_video(chat_id=message.from_user.id, video="https://avtshare01.rz.tu-ilmenau.de/avt-vqdb-uhd-1/test_1/segments/bigbuck_bunny_8bit_15000kbps_1080p_60.0fps_h264.mp4")
 
 @dp.message(Command("song"))
+@dp.callback_query(F.data == "song")
 async def cmd_song(message: types.Message, state: FSMContext):
     await state.set_state(SongStates.name)
-    await message.answer(f"Введите название песни:")
+    await bot.send_message(chat_id=message.from_user.id, text=f"Введите название песни:")
 
 @dp.message(StateFilter(None), Command("cancel"))
 async def cancel_handler(message: types.Message, state: FSMContext):
@@ -57,7 +65,7 @@ async def enter_song_name(message: types.Message, state: FSMContext):
     data["song_name"] = message.text
     logging.info("Название песние %r", data["song_name"])
     await state.set_state(SongStates.audio)
-    await message.answer(f"Прикрепите аудио файл")
+    await bot.send_message(chat_id=message.from_user.id, text=f"Прикрепите аудио файл")
 
 @dp.message(StateFilter(SongStates.audio))
 async def attach_audio(message: types.Message, state: FSMContext):
