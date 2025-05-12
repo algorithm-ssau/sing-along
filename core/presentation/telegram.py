@@ -24,6 +24,7 @@ class SongStates(StatesGroup):
     default = State()
     name = State()
     audio = State()
+    cover = State()
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
@@ -89,8 +90,30 @@ async def attach_audio(message: types.Message, state: FSMContext):
     destination = USER_DATA / str(message.from_user.id) / f"audio.{file_extension}"
     shutil.rmtree(str(destination.parent), ignore_errors=True)
     destination.parent.mkdir()
-    await bot.download_file(audio_file.file_path, destination)
+    await state.set_state(SongStates.cover)
+    await bot.send_message(chat_id=message.from_user.id, text=f"Прикрепите фоновое изображение:")
+
+@dp.message(StateFilter(SongStates.cover))
+async def attach_cover(message: types.Message, state: FSMContext):
+    if message.content_type == 'photo':
+        cover_file_id = message.photo[-1].file_id
+    elif message.content_type == 'document':
+        cover_file_id = message.document.file_id
+    else:
+        await bot.send_message(
+            chat_id=message.from_user.id,
+            text=f"Необходима картинка",
+        )
+        return
+    logging.info("Получен cover file ID: %r", cover_file_id)
+
+    cover_file = await bot.get_file(cover_file_id)
+    file_extension = cover_file.file_path.rsplit(".", 1)[-1]
+    user_folder = USER_DATA / str(message.from_user.id)
+    destination = user_folder / f"cover.{file_extension}"
+    await bot.download_file(cover_file.file_path, destination)
     await state.clear()
+
 
 async def main():
     await dp.start_polling(bot)
