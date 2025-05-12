@@ -121,7 +121,8 @@ class FfmpegVideoMaker(VideoMaker):
             song_title: str,
             cover_image: ImagePath,
             back_track: AudioPath,
-            timestamped_phrases: list[Phrase]
+            timestamped_phrases: list[Phrase],
+            destination: Path | None = None,
     ) -> VideoPath:
 
         # Загрузка и проверка аудио
@@ -181,7 +182,7 @@ class FfmpegVideoMaker(VideoMaker):
         final_clip = final_clip.with_audio(audio_clip)
 
         # Экспорт
-        output_path = f"{song_title}_karaoke.mp4"
+        output_path = destination or Path(f"{song_title}_karaoke.mp4")
         final_clip.write_videofile(
             filename=output_path,
             fps=self.fps,
@@ -196,7 +197,7 @@ class FfmpegVideoMaker(VideoMaker):
 
 
 if __name__ == '__main__':
-    song_title = "Imagine Dragons - Bones"
+    song_title = "Cage the elephant - Come a little closer"
     # song_title = "Imagine Dragons - Bones"
     # song_title = "Wengie & i-dle - EMPIRE (English Version)"
     # song_title = "Немного нервно - Пожар"
@@ -214,5 +215,6 @@ if __name__ == '__main__':
         song_title=song_title,
         cover_image=next(song_folder.glob("cover.*")),
         back_track=back_track,
-        timestamped_phrases=phrases
+        timestamped_phrases=phrases,
+        destination=song_folder / "karaoke.mp4",
     )
