@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import shutil
 from datetime import datetime
 from pathlib import Path
 
@@ -81,7 +82,14 @@ async def enter_song_name(message: types.Message, state: FSMContext):
 @dp.message(StateFilter(SongStates.audio))
 async def attach_audio(message: types.Message, state: FSMContext):
     audio_file_id = message.audio.file_id
-    await bot.send_audio(chat_id=message.from_user.id, audio=audio_file_id)
+    logging.info("Получен audio file ID: %r", audio_file_id)
+
+    audio_file = await bot.get_file(audio_file_id)
+    file_extension = audio_file.file_path.rsplit(".", 1)[-1]
+    destination = USER_DATA / str(message.from_user.id) / f"audio.{file_extension}"
+    shutil.rmtree(str(destination.parent), ignore_errors=True)
+    destination.parent.mkdir()
+    await bot.download_file(audio_file.file_path, destination)
     await state.clear()
 
 async def main():
