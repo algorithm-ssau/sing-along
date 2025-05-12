@@ -1,7 +1,36 @@
 [project]
-name = "karaoke"
+name = "karaoke-generator"
 version = "0.1.0"
-description = "Add your description here"
+description = "Turn audio into karaoke video"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+    "torch==2.6.0+rocm6.2.4",
+    "pytorch-triton-rocm==3.2.0",
+    "numpy==1.26.4",
+    "spleeter>=2.4.0",
+    "openai-whisper>=20240930",
+    "adaptix>=3.0.0b9",
+    "beautifulsoup4>=4.13.3",
+    "moviepy>=2.1.2",
+    "mypy>=1.15.0",
+    "aiogram>=3.20.0.post0",
+]
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-rocm", marker = "sys_platform == 'linux'" },
+]
+pytorch-triton-rocm = [
+    { index = "pytorch-rocm", marker = "sys_platform == 'linux'" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-rocm"
+url = "https://download.pytorch.org/whl/rocm6.2.4"
+explicit = true
+
+[tool.uv]
+environments = [
+    "sys_platform == 'linux'",
+]
