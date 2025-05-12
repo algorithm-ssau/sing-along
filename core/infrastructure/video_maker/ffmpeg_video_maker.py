@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 import adaptix
 import numpy as np
 from moviepy import AudioFileClip, ImageClip, CompositeVideoClip, TextClip, vfx, ColorClip
@@ -190,3 +193,26 @@ class FfmpegVideoMaker(VideoMaker):
         )
 
         return VideoPath(output_path)
+
+
+if __name__ == '__main__':
+    song_title = "Imagine Dragons - Bones"
+    # song_title = "Imagine Dragons - Bones"
+    # song_title = "Wengie & i-dle - EMPIRE (English Version)"
+    # song_title = "Немного нервно - Пожар"
+
+    media_folder = Path("media")
+    song_folder = media_folder / song_title
+    back_track = song_folder / "accompaniment.wav"
+    with open(song_folder / "linking.json") as file:
+        json_file = json.load(file)
+        phrases = adaptix.load(json_file, list[Phrase])
+
+    video_maker = FfmpegVideoMaker()
+
+    video = video_maker.compile_video(
+        song_title=song_title,
+        cover_image=next(song_folder.glob("cover.*")),
+        back_track=back_track,
+        timestamped_phrases=phrases
+    )
