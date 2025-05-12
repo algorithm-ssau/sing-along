@@ -1,4 +1,7 @@
+import dataclasses
+import json
 from dataclasses import dataclass
+from pathlib import Path
 
 from core.application.voice_recognition import VoiceRecognizer, Phrase
 from core.application.dto import AudioPath
@@ -49,3 +52,27 @@ class WhisperRecognizer(VoiceRecognizer):
             if words:
                 result.append(Phrase(segment.text.strip(), segment.start, segment.end, segment.words))
         return result
+
+
+class EnhancedJSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        if dataclasses.is_dataclass(o):
+            return dataclasses.asdict(o)
+        return super().default(o)
+
+
+def save_to_json(phrases: list[Phrase], filename: str | Path):
+    with open(filename, 'w') as f:
+        json.dump(phrases, f, cls=EnhancedJSONEncoder)
+
+
+def from_json(filename: str) -> list[Phrase]:
+    with open(filename, 'r') as f:
+        return Retort(strict_coercion=False).load(json.load(f), list[Phrase])
+
+
+if __name__ == "__main__":
+    song_title = "Cage the elephant - Come a little closer"
+    media_folder = Path(f"media/{song_title}/audio.mp3")
+    input_audio_file = media_folder
+    save_to_json(WhisperRecognizer().get_text_from_vocals(input_audio_file), f'media/{song_title}/transcribe.json')
