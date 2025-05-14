@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 from core.infrastructure.separation.spleeter_ai import SpleeterSeparator
 from core.infrastructure.text_generation.genius import GeniusTextScrapper
 from core.infrastructure.text_generation.mock import MockTextScrapper
-from core.infrastructure.timestamp_linking.per_phrase_alignment_linking import PhraseGrabberTextAlignmentLinker
+from core.infrastructure.timestamp_linking.per_word_alignment_linking import WordGrabberTextAlignmentLinker
 from core.infrastructure.video_maker.ffmpeg_video_maker import FfmpegVideoMaker
 from core.infrastructure.voice_recognition.whisper_ai import WhisperRecognizer
 
@@ -159,7 +159,7 @@ async def make_a_video(
     audio_separator = SpleeterSeparator()
     text_generator = GeniusTextScrapper()
     voice_recognizer = WhisperRecognizer()
-    timestamp_linker = PhraseGrabberTextAlignmentLinker()
+    timestamp_linker = WordGrabberTextAlignmentLinker()
     video_maker = FfmpegVideoMaker()
     bot_message = await bot.send_message(
         chat_id=message.from_user.id,
