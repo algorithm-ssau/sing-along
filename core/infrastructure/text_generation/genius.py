@@ -1,5 +1,6 @@
 import os
 import re
+from pathlib import Path
 
 import requests
 from bs4 import BeautifulSoup
@@ -47,3 +48,14 @@ class GeniusTextScrapper(TextGenerator):
             lyrics = lyrics.replace('\n\n', '\n')
 
         return lyrics.strip("\n")
+
+
+if __name__ == '__main__':
+    song_title = "Cage the elephant - Come a little closer"
+    song_text = GeniusTextScrapper().get_text_for_a_song(song_title)
+    media_folder = Path("media")
+    song_folder = media_folder / song_title
+    print(song_text)
+    with open(song_folder / "original_text.txt", mode='w', encoding='utf8') as file:
+        file.write(song_text)
+        print(f"Written into {file.name}")
