@@ -1,0 +1,2 @@
+class RecognitionError(Exception):
+    pass
